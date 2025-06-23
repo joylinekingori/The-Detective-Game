@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game Board - The Detective</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="game-container">
+  <div class="sidebar">
+    <h3>Current Turn: <span id="current-player"></span></h3>
+    <div class="player-list" id="player-scores"></div>
+    <button class="roll-btn" onclick="rollDice()">🎲 ROLL DICE</button>
+  </div>
+  <div style="position:relative;">
+    <div id="spaces"></div>
+    <div id="player-tokens"></div>
+  </div>
+</div>
+
+<div class="theme-switcher">
+  <button onclick="setTheme('detective')">🕵️ Detective</button>
+  <button onclick="setTheme('candy')">🍬 Candy</button>
+  <button onclick="setTheme('classic')">🎲 Classic</button>
+</div>
+
+
+
+<div class="floating-chat-reactions">
+  <div class="reaction-bar">
+    <button onclick="sendReaction('👏')" title="Clap">👏</button>
+    <button onclick="sendReaction('😂')" title="Laugh">😂</button>
+    <button onclick="sendReaction('😱')" title="Surprised">😱</button>
+    <button onclick="sendReaction('👍')" title="Thumbs Up">👍</button>
+    <button onclick="sendReaction('🎉')" title="Cheer">🎉</button>
+    <button onclick="sendReaction('😢')" title="Boo">😢</button>
+  </div>
+  <div class="game-chat">
+    <div class="chat-header">
+      <span>💬 Game Chat</span>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <form class="chat-input-row" onsubmit="sendChat(event)">
+      <input id="chat-input" type="text" maxlength="120" autocomplete="off" placeholder="Type your message..." />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+</div>
+<div id="wordModal" class="modal">
+  <div class="modal-content">
+    <h2>🟠 Word Search Puzzle</h2>
+     <p>Find and drag all the words hidden inside the grid.</p>
+    <div id="word-grid" class="grid"></div>
+    <div id="word-list"></div>
+    <button onclick="closeWordSearch()" class="close-btn">Close</button>
+  </div>
+</div>
+
+
+
+
+<div id="talkModal" class="modal">
+  <div class="modal-content">
+    <h2>🔵 Talk It Out</h2>
+    <p><strong>Your keyword:</strong></p>
+    <h3 id="talk-keyword">________</h3>
+    <p>Describe it without saying the word. Use gestures, examples, or clues.</p>
+    <p><em>⏳ Time left: <span id="talk-timer">30</span>s</em></p>
+    <button onclick="closeTalkModal()" class="close-btn">Done</button>
+  </div>
+</div>
+
+<div id="dnaModal" class="modal">
+  <div class="modal-content">
+    <h2>🧬 DNA/RNA Match</h2>
+    <p id="dna-question">Loading...</p>
+    <div id="dna-options" class="options"></div>
+    <button onclick="closeDNAModal()" class="close-btn">Close</button>
+  </div>
+</div>
+
+
+
+<audio id="dice-roll-sound" src="images/rpg-dice-rolling-95182.mp3" preload="auto"></audio>
+
+
+  <script src="index.js"></script>
+</body>
+</html>

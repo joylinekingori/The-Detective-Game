@@ -1,0 +1,41 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Player Setup - The Detective</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="setup-container">
+    <h1 class="title">Enter Player Names</h1>
+
+    <div class="player-inputs">
+      <input type="text" id="player1" placeholder="Player 1" class="player-name" required />
+      <input type="text" id="player2" placeholder="Player 2" class="player-name" required />
+      <input type="text" id="player3" placeholder="Player 3" class="player-name" />
+      <input type="text" id="player4" placeholder="Player 4" class="player-name" />
+    </div>
+
+    <button onclick="startGame()" class="start-btn">START GAME</button>
+
+
+    <div class="decor">
+      <img src="images/detective-search.png" alt="Magnifying Glass" />
+    </div>
+
+
+
+<div id="avatarModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h2>Choose an avatar?</h2>
+    <div id="avatar-choices" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;"></div>
+    <button id="avatar-confirm-btn" disabled>Confirm</button>
+  </div>
+</div>
+  </div>
+
+  <script src="index.js">
+  
+  </script>
