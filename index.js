@@ -3,12 +3,12 @@ let playersData = [];
 const isGamePage = window.location.pathname.includes("game.html");
 const isSetupPage = window.location.pathname.includes("setup.html");
 
-
 if (isSetupPage) {
   const AVATAR_OPTIONS = [
     "😎", "🤖", "🦊", "🐼", "🐸", "🐵", "🦁", "🐱", "🦉", "🐧", "🐶", "🧑‍🚀"
   ];
   let currentAvatarPlayer = 0;
+  let usedAvatars = [];
 
   window.startGame = function() {
     const player1 = document.getElementById('player1').value.trim();
@@ -23,6 +23,7 @@ if (isSetupPage) {
       .filter(name => name !== "")
       .map(name => ({ name, avatar: null }));
     currentAvatarPlayer = 0;
+    usedAvatars = [];
     showAvatarModal();
   };
 
@@ -35,6 +36,7 @@ if (isSetupPage) {
       `Choose an avatar, ${playersData[currentAvatarPlayer].name}`;
 
     AVATAR_OPTIONS.forEach(emoji => {
+      if (usedAvatars.includes(emoji)) return;
       const div = document.createElement('div');
       div.className = 'avatar-choice';
       div.innerText = emoji;
@@ -51,7 +53,7 @@ if (isSetupPage) {
   document.getElementById('avatar-confirm-btn').onclick = () => {
     const avatar = document.getElementById('avatarModal').dataset.selectedAvatar;
     playersData[currentAvatarPlayer].avatar = avatar;
-
+    usedAvatars.push(avatar);
     currentAvatarPlayer++;
     if (currentAvatarPlayer < playersData.length) {
       showAvatarModal();
@@ -66,7 +68,7 @@ if (isSetupPage) {
 if (isGamePage) {
 
   const NUM_SPACES = 20;
-  const spaceTypes = ['talk', 'word', 'dna', 'mystery'];
+  const spaceTypes = ['talk', 'word', 'dna', 'mystery', 'foodweb'];
 
   playersData = JSON.parse(localStorage.getItem("playersData")) ||
     [{name: "Player 1", avatar: "😎"}, {name: "Player 2", avatar: "🤖"}];
@@ -82,7 +84,6 @@ if (isGamePage) {
   const playerTokens = document.getElementById("player-tokens");
   const angleStep = (2 * Math.PI) / NUM_SPACES;
 
-
   for (let i = 0; i < NUM_SPACES; i++) {
     const type = spaceTypes[i % spaceTypes.length];
     const angle = i * angleStep;
@@ -96,7 +97,6 @@ if (isGamePage) {
     space.innerText = i + 1;
     board.appendChild(space);
   }
-
 
   function updateTokens() {
     playerTokens.innerHTML = "";
@@ -125,8 +125,7 @@ if (isGamePage) {
   }
 
   window.rollDice = function() {
-    if (document.querySelector(".roll-btn").disabled) return; 
-
+    if (document.querySelector(".roll-btn").disabled) return;
 
     const diceAudio = document.getElementById("dice-roll-sound");
     if (diceAudio) {
@@ -144,65 +143,11 @@ if (isGamePage) {
       else if (landedSpaceType === 'talk') showTalkItOutGame();
       else if (landedSpaceType === 'dna') showDNAGame();
       else if (landedSpaceType === 'mystery') showMysteryEvent();
+      else if (landedSpaceType === 'foodweb') showFoodWebGame();
     }, 500);
   };
 
-
-  function showMysteryEvent() {
-    const events = [
-      { text: "You found a shortcut! Move forward 2 spaces.", action: () => movePlayer(2) },
-      { text: "Oops! Caught in a trap, move back 2 spaces.", action: () => movePlayer(-2) },
-      { text: "Lucky day! Gain 2 points.", action: () => { playerScores[currentPlayer] += 2; updateSidebar(); } },
-      { text: "Unlucky! Lose a point.", action: () => { playerScores[currentPlayer] = Math.max(0, playerScores[currentPlayer] - 1); updateSidebar(); } },
-      { text: "Mystery solved! Take another turn.", action: () => {  } },
-      { text: "Trade places with the leader!", action: () => tradeWithLeader() }
-    ];
-    const event = events[Math.floor(Math.random() * events.length)];
-    alert("❓ Mystery Space! " + event.text);
-    event.action();
-    updateTokens();
-    updateSidebar();
-
-    if (event.text === "Mystery solved! Take another turn.") {
-
-      return;
-    }
-    checkForWinner();
-  }
-
-  function movePlayer(amount) {
-    playerPositions[currentPlayer] = (playerPositions[currentPlayer] + amount + NUM_SPACES) % NUM_SPACES;
-  }
-  function tradeWithLeader() {
-    let maxScore = Math.max(...playerScores);
-    let leaderIndex = playerScores.indexOf(maxScore);
-    if (leaderIndex !== currentPlayer) {
-      [playerPositions[currentPlayer], playerPositions[leaderIndex]] =
-        [playerPositions[leaderIndex], playerPositions[currentPlayer]];
-    }
-  }
-
-  function checkForWinner() {
-    const winnerIndex = playerScores.findIndex(score => score >= 5);
-    if (winnerIndex !== -1) {
-      setTimeout(() => {
-        playWinSound();
-        alert(`🎉 ${players[winnerIndex]} wins the game with 5 points!`);
-        disableGame();
-      }, 500);
-    } else {
-
-      currentPlayer = (currentPlayer + 1) % players.length;
-      updateSidebar();
-    }
-  }
-
-  function disableGame() {
-    document.querySelector(".roll-btn").disabled = true;
-    document.querySelector(".roll-btn").innerText = "Game Over 🎉";
-  }
-
-  const WORDS = ["CODE", "GAME", "JAVA", "BUG", "DATA"];
+  const WORDS = ["LIFE", "GAME", "JAVA", "BUG", "DATA"];
   let foundWords = [];
   let selectedCells = [];
   let isMouseDown = false;
@@ -231,6 +176,7 @@ if (isGamePage) {
         checkForWinner();
       }
     }, 1000);
+    window.wordTimer = wordTimer;
   }
 
   function updateWordList() {
@@ -252,7 +198,6 @@ if (isGamePage) {
     const gridSize = 36;
     const gridWidth = 6;
     let cells = Array(gridSize).fill(null);
-
 
     WORDS.forEach(word => {
       let placed = false;
@@ -348,15 +293,7 @@ if (isGamePage) {
     selectedCells = [];
   }
 
-  function playWinSound() {
-    const audio = document.getElementById("win-sound");
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play();
-    }
-  }
-
-
+  // --- TALK IT OUT MINIGAME ---
   const TALK_KEYWORDS = [
     "Umbrella", "Pencil", "Airplane", "School", "Mountain", "Spider", "Clock", "Guitar", "TV", "Keyboard", "Light"
   ];
@@ -365,7 +302,6 @@ if (isGamePage) {
     const keyword = TALK_KEYWORDS[Math.floor(Math.random() * TALK_KEYWORDS.length)];
     document.getElementById("talk-keyword").innerText = keyword;
     document.getElementById("talkModal").style.display = "flex";
-
 
     let timeLeft = 30;
     document.getElementById("talk-timer").innerText = timeLeft;
@@ -391,6 +327,7 @@ if (isGamePage) {
     checkForWinner();
   }
 
+  // --- DNA MINIGAME ---
   const DNA_QUESTIONS = [
     {
       question: "Which base pairs with Adenine in DNA?",
@@ -446,51 +383,194 @@ if (isGamePage) {
   }
 
 
+  // --- FOOD WEB MINIGAME ---
+  const FOOD_WEB_ORGANISMS = [
+    { name: "Grass", level: "Producer", emoji: "🌱" },
+    { name: "Rabbit", level: "Primary Consumer", emoji: "🐇" },
+    { name: "Fox", level: "Secondary Consumer", emoji: "🦊" },
+    { name: "Mushroom", level: "Decomposer", emoji: "🍄" }
+  ];
 
-   function setTheme(theme) {
-  document.body.classList.remove('theme-detective', 'theme-candy', 'theme-classic');
-  document.body.classList.add('theme-' + theme);
-  localStorage.setItem('gameTheme', theme);
+  function showFoodWebGame() {
+    document.getElementById("foodWebModal").style.display = "flex";
+    setupFoodWeb();
+  }
 
+function setupFoodWeb() {
 
-  document.querySelectorAll('.theme-switcher button').forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.title.toLowerCase() === theme) btn.classList.add('active');
+  ["producer", "primaryconsumer", "secondaryconsumer", "decomposer"].forEach(zone => {
+    document.getElementById(zone + "-zone").innerHTML = "";
   });
-}
-
-
-const chatMessages = [];
-
-function sendChat(event) {
-  event.preventDefault();
-  const input = document.getElementById('chat-input');
-  const message = input.value.trim();
-  if (!message) return;
-
-  const player = playersData && playersData[currentPlayer] ? playersData[currentPlayer] : {name: "Player", avatar: "🧑"};
-  chatMessages.push({
-    user: player.name,
-    avatar: player.avatar,
-    msg: message,
-    self: true 
-  });
-  renderChat();
-  input.value = '';
-  input.focus();
-}
-
-function renderChat() {
-  const chatBox = document.getElementById('chat-messages');
-  chatBox.innerHTML = chatMessages.map(msg =>
-    `<div class="chat-message self">
-      <span class="avatar">${msg.avatar}</span>
-      <span><strong>${msg.user}:</strong> ${msg.msg}</span>
-    </div>`
-  ).join('');
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
   
+
+  const organisms = FOOD_WEB_ORGANISMS.slice().sort(() => Math.random() - 0.5);
+  
+
+  const orgContainer = document.getElementById("food-web-organisms");
+  orgContainer.innerHTML = "";
+  organisms.forEach(org => {
+    const card = document.createElement("div");
+    card.className = "organism-card";
+    card.draggable = true;
+    card.innerText = `${org.emoji} ${org.name}`;
+    card.dataset.level = org.level;
+    card.id = "org-" + org.name.replace(/\s/g, "");
+    card.ondragstart = (e) => {
+      card.classList.add("dragging");
+      e.dataTransfer.setData("text/plain", card.id);
+    };
+    card.ondragend = () => card.classList.remove("dragging");
+    orgContainer.appendChild(card);
+  });
+
+
+    FOOD_WEB_ORGANISMS.forEach(org => {
+      const zoneId = org.level.toLowerCase().replace(/\s/g, "") + "-zone";
+      const zone = document.getElementById(zoneId);
+      zone.ondragover = e => e.preventDefault();
+      zone.ondrop = e => {
+        e.preventDefault();
+        const cardId = e.dataTransfer.getData("text/plain");
+        const card = document.getElementById(cardId);
+        if (card && card.dataset.level === org.level) {
+          zone.appendChild(card);
+          card.draggable = false;
+          card.style.cursor = "default";
+          checkFoodWebCompletion();
+        } else {
+          alert("Oops! That's not the right place.");
+        }
+      };
+    });
+  }
+
+  function checkFoodWebCompletion() {
+    const zones = [
+      "producer-zone",
+      "primary-zone",
+      "secondary-zone",
+      "decomposer-zone"
+    ];
+    const allPlaced = zones.every(zoneId =>
+      document.getElementById(zoneId).children.length === 1
+    );
+    if (allPlaced) {
+      setTimeout(() => {
+        alert("🎉 Well done! You built the food web!");
+        playerScores[currentPlayer]++;
+        updateSidebar();
+        closeFoodWebModal();
+        checkForWinner();
+      }, 250);
+    }
+  }
+
+  function closeFoodWebModal() {
+    document.getElementById("foodWebModal").style.display = "none";
+  }
+
+
+  function showMysteryEvent() {
+    const events = [
+      { text: "You found a shortcut! Move forward 2 spaces.", action: () => movePlayer(2) },
+      { text: "Oops! Caught in a trap, move back 2 spaces.", action: () => movePlayer(-2) },
+      { text: "Lucky day! Gain 2 points.", action: () => { playerScores[currentPlayer] += 2; updateSidebar(); } },
+      { text: "Unlucky! Lose a point.", action: () => { playerScores[currentPlayer] = Math.max(0, playerScores[currentPlayer] - 1); updateSidebar(); } },
+      { text: "Mystery solved! Take another turn.", action: () => {  } },
+      { text: "Trade places with the leader!", action: () => tradeWithLeader() }
+    ];
+    const event = events[Math.floor(Math.random() * events.length)];
+    alert("❓ Mystery Space! " + event.text);
+    event.action();
+    updateTokens();
+    updateSidebar();
+
+    if (event.text === "Mystery solved! Take another turn.") {
+      return;
+    }
+    checkForWinner();
+  }
+
+  function movePlayer(amount) {
+    playerPositions[currentPlayer] = (playerPositions[currentPlayer] + amount + NUM_SPACES) % NUM_SPACES;
+  }
+  function tradeWithLeader() {
+    let maxScore = Math.max(...playerScores);
+    let leaderIndex = playerScores.indexOf(maxScore);
+    if (leaderIndex !== currentPlayer) {
+      [playerPositions[currentPlayer], playerPositions[leaderIndex]] =
+        [playerPositions[leaderIndex], playerPositions[currentPlayer]];
+    }
+  }
+
+  function checkForWinner() {
+    const winnerIndex = playerScores.findIndex(score => score >= 5);
+    if (winnerIndex !== -1) {
+      setTimeout(() => {
+        playWinSound();
+        alert(`🎉 ${players[winnerIndex]} wins the game with 5 points!`);
+        disableGame();
+      }, 500);
+    } else {
+      currentPlayer = (currentPlayer + 1) % players.length;
+      updateSidebar();
+    }
+  }
+
+  function disableGame() {
+    document.querySelector(".roll-btn").disabled = true;
+    document.querySelector(".roll-btn").innerText = "Game Over 🎉";
+  }
+
+  function playWinSound() {
+    const audio = document.getElementById("win-sound");
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play();
+    }
+  }
+
+  function setTheme(theme) {
+    document.body.classList.remove('theme-detective', 'theme-candy', 'theme-classic');
+    document.body.classList.add('theme-' + theme);
+    localStorage.setItem('gameTheme', theme);
+
+    document.querySelectorAll('.theme-switcher button').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.title && btn.title.toLowerCase() === theme) btn.classList.add('active');
+    });
+  }
+
+  const chatMessages = [];
+
+  function sendChat(event) {
+    event.preventDefault();
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    const player = playersData && playersData[currentPlayer] ? playersData[currentPlayer] : {name: "Player", avatar: "🧑"};
+    chatMessages.push({
+      user: player.name,
+      avatar: player.avatar,
+      msg: message,
+      self: true 
+    });
+    renderChat();
+    input.value = '';
+    input.focus();
+  }
+
+  function renderChat() {
+    const chatBox = document.getElementById('chat-messages');
+    chatBox.innerHTML = chatMessages.map(msg =>
+      `<div class="chat-message self">
+        <span class="avatar">${msg.avatar}</span>
+        <span><strong>${msg.user}:</strong> ${msg.msg}</span>
+      </div>`
+    ).join('');
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
 
   window.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('gameTheme') || 'detective';
@@ -514,7 +594,6 @@ function renderChat() {
     setTimeout(() => { popup.style.display = 'none'; }, 1500);
   };
 
-
   window.showTurnRecap = function(msg) {
     const recap = document.createElement('div');
     recap.className = 'turn-recap';
@@ -523,10 +602,11 @@ function renderChat() {
     setTimeout(() => recap.remove(), 1800);
   };
 
-  updateTokens();
-  updateSidebar();
-
   window.closeDNAModal = closeDNAModal;
   window.closeTalkModal = closeTalkModal;
   window.closeWordSearch = closeWordSearch;
+  window.closeFoodWebModal = closeFoodWebModal;
+
+  updateTokens();
+  updateSidebar();
 }

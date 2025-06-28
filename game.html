@@ -27,7 +27,6 @@
 
 
 
-<div class="floating-chat-reactions">
   <div class="reaction-bar">
     <button onclick="sendReaction('👏')" title="Clap">👏</button>
     <button onclick="sendReaction('😂')" title="Laugh">😂</button>
@@ -77,6 +76,36 @@
     <p id="dna-question">Loading...</p>
     <div id="dna-options" class="options"></div>
     <button onclick="closeDNAModal()" class="close-btn">Close</button>
+  </div>
+</div>
+
+
+<div id="foodWebModal" class="webmodal" style="display:none;">
+  <div class="webmodal-content">
+    <h2>🌱 Build the Food Web!</h2>
+    <p>Drag each organism to its correct place in the food web.</p>
+    <div class="food-web-targets">
+    
+
+<div class="food-web-zone" data-level="Producer">
+  <strong>Producer</strong>
+  <div class="drop-target" id="producer-zone"></div>
+</div>
+<div class="food-web-zone" data-level="Primary Consumer">
+  <strong>Primary Consumer</strong>
+  <div class="drop-target" id="primaryconsumer-zone"></div>
+</div>
+<div class="food-web-zone" data-level="Secondary Consumer">
+  <strong>Secondary Consumer</strong>
+  <div class="drop-target" id="secondaryconsumer-zone"></div>
+</div>
+<div class="food-web-zone" data-level="Decomposer">
+  <strong>Decomposer</strong>
+  <div class="drop-target" id="decomposer-zone"></div>
+</div>
+    </div>
+    <div class="food-web-organisms" id="food-web-organisms"></div>
+    <button onclick="closeFoodWebModal()" class="close-btn">Close</button>
   </div>
 </div>
 
