@@ -1,119 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Game Board - The Detective</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8"/>
+  <title>The Detective</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-<div id="game-container">
-  <div class="sidebar">
-    <h3>Current Turn: <span id="current-player"></span></h3>
-    <div class="player-list" id="player-scores"></div>
-    <button class="roll-btn" onclick="rollDice()">🎲 ROLL DICE</button>
+  <div class="center-screen">
+    <h1>
+      <span class="magnify">🔎</span>
+      <span class="detective-title">THE DETECTIVE</span>
+    </h1>
+    <button class="main-btn" onclick="startGame()">START GAME</button>
+    <span style="display:inline-block;vertical-align:middle;font-size:1.7em;margin-left:8px;">📒</span>
+    <br/>
+    <a href="#" class="how-to-link" onclick="openHowToPlay(event)">HOW TO PLAY</a>
   </div>
-  <div style="position:relative;">
-    <div id="spaces"></div>
-    <div id="player-tokens"></div>
-  </div>
-</div>
 
-<div class="theme-switcher">
-  <button onclick="setTheme('detective')">🕵️ Detective</button>
-  <button onclick="setTheme('candy')">🍬 Candy</button>
-  <button onclick="setTheme('classic')">🎲 Classic</button>
-</div>
-
-
-
-  <div class="reaction-bar">
-    <button onclick="sendReaction('👏')" title="Clap">👏</button>
-    <button onclick="sendReaction('😂')" title="Laugh">😂</button>
-    <button onclick="sendReaction('😱')" title="Surprised">😱</button>
-    <button onclick="sendReaction('👍')" title="Thumbs Up">👍</button>
-    <button onclick="sendReaction('🎉')" title="Cheer">🎉</button>
-    <button onclick="sendReaction('😢')" title="Boo">😢</button>
-  </div>
-  <div class="game-chat">
-    <div class="chat-header">
-      <span>💬 Game Chat</span>
+  <div id="howto-modal" class="howto-modal">
+     <div class="howto-content animated-pop">
+      <div class="howto-header">
+        <span class="howto-icon">🕵️‍♂️</span>
+        <h2>How To Play</h2>
+      </div>
+      <div class="howto-steps">
+        <div class="howto-step">
+          <span class="howto-emoji">👯‍♂️</span> 
+          <b>1. Gather your team!</b>
+          <div>Enter player names & pick your detective avatar.</div>
+        </div>
+        <div class="howto-step">
+          <span class="howto-emoji">🎲</span>
+          <b>2. Roll the dice & move across the board!</b>
+          <div>Land on fun spaces: word searches, talk rounds, or DNA quizzes!</div>
+        </div>
+        <div class="howto-step">
+          <span class="howto-emoji">💡</span>
+          <b>3. Solve challenges!</b>
+          <div>Find words, answer questions, or describe clues to earn points.</div>
+        </div>
+        <div class="howto-step">
+          <span class="howto-emoji">🏆</span>
+          <b>4. Be the first to 5 points to win!</b>
+          <div>Will YOU become the Ultimate Detective?</div>
+        </div>
+      </div>
+      <button class="howto-btn" onclick="closeHowToPlay()">✨ Got it! Let's Play! ✨</button>
+      <div class="howto-confetti" id="howto-confetti"></div>
     </div>
-    <div class="chat-messages" id="chat-messages"></div>
-    <form class="chat-input-row" onsubmit="sendChat(event)">
-      <input id="chat-input" type="text" maxlength="120" autocomplete="off" placeholder="Type your message..." />
-      <button type="submit">Send</button>
-    </form>
   </div>
-</div>
-<div id="wordModal" class="modal">
-  <div class="modal-content">
-    <h2>🟠 Word Search Puzzle</h2>
-     <p>Find and drag all the words hidden inside the grid.</p>
-    <div id="word-grid" class="grid"></div>
-    <div id="word-list"></div>
-    <button onclick="closeWordSearch()" class="close-btn">Close</button>
-  </div>
-</div>
 
+  <audio id="pop-sound" src="https://cdn.pixabay.com/audio/2022/10/16/audio_12c6b7b3f1.mp3"></audio>
 
+  <script>
+    function openHowToPlay(e) {
+      e.preventDefault();
+      document.getElementById('howto-modal').style.display = 'flex';
+      document.getElementById('pop-sound').play();
+      triggerConfetti();
+    }
+    function closeHowToPlay() {
+      document.getElementById('howto-modal').style.display = 'none';
+    }
 
+    function triggerConfetti() {
+      const confetti = document.getElementById('howto-confetti');
+      confetti.innerHTML = '';
+      for(let i=0; i<24; i++) {
+        const span = document.createElement('span');
+        span.className = 'confetti-piece';
+        span.innerText = ['🟡','🔵','🟠','🟣','🔴','🟢','⭐','💎','🧩'][Math.floor(Math.random()*9)];
+        span.style.left = Math.random()*100 + '%';
+        span.style.animationDelay = (Math.random()*0.7)+'s';
+        confetti.appendChild(span);
+      }
+      setTimeout(()=>{confetti.innerHTML='';}, 1700);
+    }
 
-<div id="talkModal" class="modal">
-  <div class="modal-content">
-    <h2>🔵 Talk It Out</h2>
-    <p><strong>Your keyword:</strong></p>
-    <h3 id="talk-keyword">________</h3>
-    <p>Describe it without saying the word. Use gestures, examples, or clues.</p>
-    <p><em>⏳ Time left: <span id="talk-timer">30</span>s</em></p>
-    <button onclick="closeTalkModal()" class="close-btn">Done</button>
-  </div>
-</div>
-
-<div id="dnaModal" class="modal">
-  <div class="modal-content">
-    <h2>🧬 DNA/RNA Match</h2>
-    <p id="dna-question">Loading...</p>
-    <div id="dna-options" class="options"></div>
-    <button onclick="closeDNAModal()" class="close-btn">Close</button>
-  </div>
-</div>
-
-
-<div id="foodWebModal" class="webmodal" style="display:none;">
-  <div class="webmodal-content">
-    <h2>🌱 Build the Food Web!</h2>
-    <p>Drag each organism to its correct place in the food web.</p>
-    <div class="food-web-targets">
-    
-
-<div class="food-web-zone" data-level="Producer">
-  <strong>Producer</strong>
-  <div class="drop-target" id="producer-zone"></div>
-</div>
-<div class="food-web-zone" data-level="Primary Consumer">
-  <strong>Primary Consumer</strong>
-  <div class="drop-target" id="primaryconsumer-zone"></div>
-</div>
-<div class="food-web-zone" data-level="Secondary Consumer">
-  <strong>Secondary Consumer</strong>
-  <div class="drop-target" id="secondaryconsumer-zone"></div>
-</div>
-<div class="food-web-zone" data-level="Decomposer">
-  <strong>Decomposer</strong>
-  <div class="drop-target" id="decomposer-zone"></div>
-</div>
-    </div>
-    <div class="food-web-organisms" id="food-web-organisms"></div>
-    <button onclick="closeFoodWebModal()" class="close-btn">Close</button>
-  </div>
-</div>
-
-
-
-<audio id="dice-roll-sound" src="images/rpg-dice-rolling-95182.mp3" preload="auto"></audio>
-
-
-  <script src="index.js"></script>
+    function startGame() {
+      window.location.href = "setup.html";
+    }
+  </script>
 </body>
 </html>
